@@ -88,3 +88,60 @@
 }
 
 /* ADD ADDITIONAL CSS BELOW HERE */
+
+.ventaker-hotkey-key-recorder-container {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+  border-radius: 5px;
+  background-color: var(--background-secondary, rgba(0, 0, 0, 0.4)); /* Using a Discord variable or fallback */
+  margin-top: 10px;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px var(--main-color); /* Subtle border/shadow */
+  transition: all .15s ease-in-out;
+}
+
+.ventaker-hotkey-key-recorder-container:hover {
+  background-color: var(--background-modifier-hover, rgba(0, 0, 0, 0.6));
+  box-shadow: 0 0 0 1px var(--hover-color);
+}
+
+.ventaker-hotkey-key-recorder {
+  flex-grow: 1;
+  font-size: 14px;
+  color: var(--text-normal);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px;
+  border-radius: 3px;
+  background-color: rgba(0, 0, 0, 0.2); /* Slightly darker for distinction */
+}
+
+.ventaker-hotkey-key-recorder-button {
+  background-color: var(--main-color); /* Use main accent color */
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: all .15s ease-in-out;
+}
+
+.ventaker-hotkey-key-recorder-button:hover:not(:disabled) {
+  background-color: var(--hover-color);
+}
+
+.ventaker-hotkey-key-recorder-button:disabled {
+  background-color: rgba(100, 100, 100, 0.5); /* Greyed out when disabled */
+  cursor: not-allowed;
+}
+
+.ventaker-hotkey-recording-button {
+  background-color: var(--danger-color); /* Indicate recording state with danger color */
+}
+
+.ventaker-hotkey-recording-button:hover:not(:disabled) {
+  background-color: var(--danger-color); /* Keep the danger color on hover while recording */
+}
