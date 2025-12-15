@@ -35,6 +35,12 @@ const settings = definePluginSettings({
     default: true,
     restartNeeded: true,
   },
+  hideByDefault: {
+    type: OptionType.BOOLEAN,
+    description: "Hide background by default, show only after pressing keybind.",
+    default: false,
+    restartNeeded: true,
+  },
   disableKeybind: {
     description: "Hotkey to toggle the background on/off.",
     type: OptionType.COMPONENT,
@@ -236,11 +242,12 @@ export default definePlugin({
   async start() {
     console.log("Ventaker plugin started.");
     console.log("Plugin loaded with settings:", settings);
-    const { link } = settings.store;
+    const { link, hideByDefault } = settings.store;
     var { intervalRate } = settings.store;
     if (intervalRate < 30) {
       intervalRate = 30;
     }
+    backgroundDisabled = hideByDefault; // Initialize backgroundDisabled based on hideByDefault setting
     startBackgroundUpdate(link, intervalRate);
     applyStyles();
     document.addEventListener("keydown", this.event);
@@ -258,6 +265,7 @@ export default definePlugin({
       styleElement.remove();
     }
     currentVideoUrl = null;
+    backgroundDisabled = false; // Reset backgroundDisabled when plugin stops
   },
 
   event(e: KeyboardEvent) {

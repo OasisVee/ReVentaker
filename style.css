@@ -1,5 +1,5 @@
 /* IMPORT CSS */
-@import url("https://raw.githubusercontent.com/Eldrazi7604/Walltaker-Vision-New-UI/refs/heads/ventaker/main.css");
+@import url("https://raw.githubusercontent.com/OasisVee/Walltaker-Vision-New-UI/refs/heads/ventaker/main.css");
 @import url("https://clearvision.github.io/ClearVision-v7/betterdiscord.css");
 @import url("https://clearvision.github.io/ClearVision-v7/vencord.css");
 
@@ -37,8 +37,10 @@
   --home-icon: url("https://clearvision.github.io/icons/discord.svg");
 
   /* FONTS */
-  --main-font: "gg sans", whitney, "Helvetica Neue", helvetica, arial, sans-serif;
-  --code-font: consolas, "gg mono", "Liberation Mono", menlo, courier, monospace;
+  --main-font:
+    "gg sans", whitney, "Helvetica Neue", helvetica, arial, sans-serif;
+  --code-font:
+    consolas, "gg mono", "Liberation Mono", menlo, courier, monospace;
 }
 
 /* THEME SPECIFIC SHADING */
@@ -94,11 +96,14 @@
   align-items: center;
   padding: 8px;
   border-radius: 5px;
-  background-color: var(--background-secondary, rgba(0, 0, 0, 0.4)); /* Using a Discord variable or fallback */
+  background-color: var(
+    --background-secondary,
+    rgba(0, 0, 0, 0.4)
+  ); /* Using a Discord variable or fallback */
   margin-top: 10px;
   cursor: pointer;
   box-shadow: 0 0 0 1px var(--main-color); /* Subtle border/shadow */
-  transition: all .15s ease-in-out;
+  transition: all 0.15s ease-in-out;
 }
 
 .ventaker-hotkey-key-recorder-container:hover {
@@ -126,7 +131,7 @@
   padding: 5px 10px;
   cursor: pointer;
   font-size: 12px;
-  transition: all .15s ease-in-out;
+  transition: all 0.15s ease-in-out;
 }
 
 .ventaker-hotkey-key-recorder-button:hover:not(:disabled) {
@@ -139,9 +144,13 @@
 }
 
 .ventaker-hotkey-recording-button {
-  background-color: var(--danger-color); /* Indicate recording state with danger color */
+  background-color: var(
+    --danger-color
+  ); /* Indicate recording state with danger color */
 }
 
 .ventaker-hotkey-recording-button:hover:not(:disabled) {
-  background-color: var(--danger-color); /* Keep the danger color on hover while recording */
+  background-color: var(
+    --danger-color
+  ); /* Keep the danger color on hover while recording */
 }
