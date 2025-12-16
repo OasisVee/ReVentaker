@@ -212,7 +212,6 @@ function setBackgroundImage(url) {
     return;
   }
   console.log(`Setting background to: ${url}`);
-  let styleElement = document.getElementById("walltaker-background");
 
   // Remove existing video element if any
   const videoElement = document.getElementById("walltaker-video-background");
@@ -220,18 +219,13 @@ function setBackgroundImage(url) {
     videoElement.remove();
     currentVideoUrl = null; // Reset the current video URL
   }
+  document.documentElement.style.setProperty("--background-image", `url('${url}')`);
 
-  if (!styleElement) {
-    styleElement = document.createElement("style");
-    styleElement.id = "walltaker-background";
-    document.head.appendChild(styleElement);
+  // Remove old style element for cleanup
+  const styleElement = document.getElementById("walltaker-background");
+  if (styleElement) {
+    styleElement.remove();
   }
-  styleElement.innerHTML = `
-        body {
-            background-image: url('${url}') !important;
-            background-size: cover !important;
-        }
-    `;
 }
 
 // Function to apply additional CSS styles
@@ -293,10 +287,7 @@ export default definePlugin({
     if (videoElement) {
       videoElement.remove();
     }
-    const styleElement = document.getElementById("walltaker-background");
-    if (styleElement) {
-      styleElement.remove();
-    }
+    document.documentElement.style.removeProperty("--background-image");
     currentVideoUrl = null;
     backgroundDisabled = false; // Reset backgroundDisabled when plugin stops
   },
@@ -339,16 +330,13 @@ export default definePlugin({
     const videoElement = document.getElementById(
       "walltaker-video-background",
     ) as HTMLVideoElement;
-    const styleElement = document.getElementById("walltaker-background");
 
     if (backgroundDisabled) {
       if (videoElement) {
         videoElement.style.display = "none";
         videoElement.pause();
       }
-      if (styleElement) {
-        styleElement.innerHTML = ""; // Clear image background
-      }
+      document.documentElement.style.removeProperty("--background-image");
     } else {
       // Re-enable background, re-fetch if necessary
       if (
@@ -359,18 +347,12 @@ export default definePlugin({
         videoElement.style.display = "block";
         videoElement.currentTime = 0; // Restart video from the beginning
         videoElement.play();
-      } else if (
-        styleElement &&
-        currentVideoUrl &&
-        !currentVideoUrl.endsWith(".webm")
-      ) {
+      } else if (currentVideoUrl && !currentVideoUrl.endsWith(".webm")) {
         // Re-apply image background
-        styleElement.innerHTML = `
-            body {
-                background-image: url('${currentVideoUrl}') !important;
-                background-size: cover !important;
-            }
-        `;
+        document.documentElement.style.setProperty(
+          "--background-image",
+          `url('${currentVideoUrl}')`,
+        );
       }
       // If no currentUrl, re-fetch. This scenario might happen if the keybind was pressed before first fetch.
       if (!currentVideoUrl) {
