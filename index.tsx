@@ -134,7 +134,7 @@ async function fetchBackgroundUrl(linkId) {
   }
 }
 
-function setBackground(url) {
+async function setBackground(url) {
   if (backgroundDisabled) {
     console.log("Background is disabled, not setting video background.");
     return;
@@ -168,8 +168,41 @@ function setBackground(url) {
     videoElement.style.zIndex = "-1";
     document.body.appendChild(videoElement);
   }
-  videoElement.src = url;
-  videoElement.style.display = "block";
+
+  videoElement.style.display = "none";
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(
+        `Failed to fetch video: ${response.status} ${response.statusText}`,
+      );
+    }
+    const blob = await response.blob();
+    const newObjectURL = URL.createObjectURL(blob);
+    if (videoElement.src && videoElement.src.startsWith("blob:")) {
+      URL.revokeObjectURL(videoElement.src);
+    }
+    videoElement.addEventListener(
+      "canplay",
+      () => {
+        console.log("Video can play, displaying now.");
+        videoElement.style.display = "block";
+        videoElement.play();
+      },
+      { once: true },
+    );
+    videoElement.addEventListener(
+      "error",
+      () => {
+        console.error("Error playing video file.");
+        URL.revokeObjectURL(newObjectURL); // Clean up
+      },
+      { once: true },
+    );
+    videoElement.src = newObjectURL;
+  } catch (error) {
+    console.error("Error fetching or playing video background:", error);
+  }
 }
 
 // Function to set the background in the Discord client
@@ -220,7 +253,7 @@ function startBackgroundUpdate(linkId, interval) {
     const backgroundUrl = await fetchBackgroundUrl(linkId);
     if (backgroundUrl) {
       if (backgroundUrl.endsWith(".webm")) {
-        setBackground(backgroundUrl);
+        await setBackground(backgroundUrl);
       } else {
         setBackgroundImage(backgroundUrl);
       }
