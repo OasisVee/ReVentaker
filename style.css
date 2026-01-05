@@ -6,20 +6,20 @@
 /* SETTINGS */
 :root {
   /* ACCENT COLORS */
-  --main-color: #2780e6;
-  --hover-color: #1e63b3;
-  --success-color: #43b581;
-  --danger-color: #982929;
+  --main-color: #bd93f9;
+  --hover-color: #9873d4;
+  --success-color: #50fa7b;
+  --danger-color: #ff5555;
 
   /* STATUS COLORS */
-  --online-color: #43b581;
-  --idle-color: #faa61a;
-  --dnd-color: #982929;
-  --streaming-color: #593695;
-  --offline-color: #808080;
+  --online-color: #50fa7b;
+  --idle-color: #ffb86c;
+  --dnd-color: #ff5555;
+  --streaming-color: #ff79c6;
+  --offline-color: #6272a4;
 
   /* APP BACKGROUND */
-  --background-shading-percent: 100%;
+  --background-shading-percent: calc(var(--reventaker-opacity, 1) * 100%);
   --background-attachment: fixed;
   --background-filter: saturate(calc(var(--saturation-factor, 1) * 1));
 
@@ -47,18 +47,18 @@
 
 /* LIGHT THEME */
 :is(.theme-light, .theme-dark .theme-light) {
-  --background-shading: rgb(252 252 252 / 30%);
-  --card-shading: rgb(252 252 252 / 30%);
-  --popout-shading: rgb(252 252 252 / 70%);
-  --modal-shading: rgb(252 252 252 / 50%);
-  --input-shading: rgb(0 0 0 / 30%);
+  --background-shading: rgb(248 248 242 / var(--reventaker-opacity, 0.8));
+  --card-shading: rgb(248 248 242 / 70%);
+  --popout-shading: rgb(248 248 242 / 90%);
+  --modal-shading: rgb(248 248 242 / 80%);
+  --input-shading: rgb(0 0 0 / 10%);
   --normal-text: #36363c;
   --muted-text: #75757e;
 }
 
 /* ASH THEME */
 :is(.theme-dark, .theme-light .theme-dark) {
-  --background-shading: rgb(0 0 0 / 40%);
+  --background-shading: rgb(0 0 0 / var(--reventaker-opacity, 0.8));
   --card-shading: rgb(0 0 0 / 20%);
   --popout-shading: rgb(0 0 0 / 60%);
   --modal-shading: rgb(0 0 0 / 40%);
@@ -69,7 +69,7 @@
 
 /* DARK THEME */
 :is(.theme-darker, .theme-light .theme-darker) {
-  --background-shading: rgb(0 0 0 / 60%);
+  --background-shading: rgb(0 0 0 / var(--reventaker-opacity, 0.8));
   --card-shading: rgb(0 0 0 / 30%);
   --popout-shading: rgb(0 0 0 / 70%);
   --modal-shading: rgb(0 0 0 / 50%);
@@ -80,7 +80,7 @@
 
 /* ONYX THEME */
 :is(.theme-midnight, .theme-light .theme-midnight) {
-  --background-shading: rgb(0 0 0 / 80%);
+  --background-shading: rgb(0 0 0 / var(--reventaker-opacity, 0.8));
   --card-shading: rgb(0 0 0 / 40%);
   --popout-shading: rgb(0 0 0 / 80%);
   --modal-shading: rgb(0 0 0 / 60%);
@@ -96,11 +96,9 @@
   align-items: center;
   padding: 8px;
   border-radius: 5px;
-  background-color: var(
-    --background-secondary,
-    rgba(0, 0, 0, 0.4)
-  ); /* Using a Discord variable or fallback */
+  background-color: var(--card-shading); /* Use theme's card shading */
   margin-top: 10px;
+  margin-bottom: 10px;
   cursor: pointer;
   box-shadow: 0 0 0 1px var(--main-color); /* Subtle border/shadow */
   transition: all 0.15s ease-in-out;
@@ -114,13 +112,13 @@
 .ventaker-hotkey-key-recorder {
   flex-grow: 1;
   font-size: 14px;
-  color: var(--text-normal);
+  color: var(--normal-text);
   display: flex;
   align-items: center;
   gap: 5px;
   padding: 5px;
   border-radius: 3px;
-  background-color: rgba(0, 0, 0, 0.2); /* Slightly darker for distinction */
+  background-color: var(--input-shading); /* Use theme's input shading */
 }
 
 .ventaker-hotkey-key-recorder-button {

@@ -13,6 +13,7 @@ import { classNameFactory } from "@api/Styles";
 let currentVideoUrl = null;
 let isRecordingGlobalVentaker: boolean = false;
 let backgroundDisabled: boolean = false;
+let backgroundUpdateInterval: any = null;
 const cl = classNameFactory("ventaker-hotkey-");
 
 // Define the settings for the plugin
@@ -37,8 +38,15 @@ const settings = definePluginSettings({
   },
   hideByDefault: {
     type: OptionType.BOOLEAN,
-    description: "Hide background by default, show only after pressing keybind.",
+    description:
+      "Hide background by default, show only after pressing keybind.",
     default: false,
+    restartNeeded: true,
+  },
+  opacity: {
+    type: OptionType.NUMBER,
+    description: "Background opacity, from 0 to 100 (100 is opaque).",
+    default: 80,
     restartNeeded: true,
   },
   disableKeybind: {
@@ -134,12 +142,17 @@ async function fetchBackgroundUrl(linkId) {
   }
 }
 
-async function setBackground(url) {
+function setBackground(url) {
   if (backgroundDisabled) {
     console.log("Background is disabled, not setting video background.");
     return;
   }
   console.log(`Setting background to: ${url}`);
+
+  document.documentElement.style.setProperty(
+    "--reventaker-opacity",
+    `${settings.store.opacity / 100}`,
+  );
 
   // Check if the URL is the same as the current video URL
   if (url === currentVideoUrl) {
@@ -166,43 +179,17 @@ async function setBackground(url) {
     videoElement.style.height = "100%";
     videoElement.style.objectFit = "cover";
     videoElement.style.zIndex = "-1";
+    videoElement.style.opacity = "1";
     document.body.appendChild(videoElement);
   }
 
-  videoElement.style.display = "none";
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(
-        `Failed to fetch video: ${response.status} ${response.statusText}`,
-      );
-    }
-    const blob = await response.blob();
-    const newObjectURL = URL.createObjectURL(blob);
-    if (videoElement.src && videoElement.src.startsWith("blob:")) {
-      URL.revokeObjectURL(videoElement.src);
-    }
-    videoElement.addEventListener(
-      "canplay",
-      () => {
-        console.log("Video can play, displaying now.");
-        videoElement.style.display = "block";
-        videoElement.play();
-      },
-      { once: true },
-    );
-    videoElement.addEventListener(
-      "error",
-      () => {
-        console.error("Error playing video file.");
-        URL.revokeObjectURL(newObjectURL); // Clean up
-      },
-      { once: true },
-    );
-    videoElement.src = newObjectURL;
-  } catch (error) {
-    console.error("Error fetching or playing video background:", error);
+  if (videoElement) {
+    // Also ensure to clear the CSS background property when a video is set
+    document.documentElement.style.removeProperty("--background-image");
   }
+
+  videoElement.src = url;
+  videoElement.style.display = "block";
 }
 
 // Function to set the background in the Discord client
@@ -213,13 +200,21 @@ function setBackgroundImage(url) {
   }
   console.log(`Setting background to: ${url}`);
 
+  document.documentElement.style.setProperty(
+    "--reventaker-opacity",
+    `${settings.store.opacity / 100}`,
+  );
+
   // Remove existing video element if any
   const videoElement = document.getElementById("walltaker-video-background");
   if (videoElement) {
     videoElement.remove();
     currentVideoUrl = null; // Reset the current video URL
   }
-  document.documentElement.style.setProperty("--background-image", `url('${url}')`);
+  document.documentElement.style.setProperty(
+    "--background-image",
+    `url('${url}')`,
+  );
 
   // Remove old style element for cleanup
   const styleElement = document.getElementById("walltaker-background");
@@ -241,13 +236,15 @@ function applyStyles() {
   styleElement.innerHTML = cssContent;
 }
 
-// Function to periodically update the background
+// Function to periodicall update the background
 function startBackgroundUpdate(linkId, interval) {
+  if (backgroundUpdateInterval) clearInterval(backgroundUpdateInterval);
+
   async function updateBackground() {
     const backgroundUrl = await fetchBackgroundUrl(linkId);
     if (backgroundUrl) {
-      if (backgroundUrl.endsWith(".webm")) {
-        await setBackground(backgroundUrl);
+      if (backgroundUrl.endsWith(".webm") || backgroundUrl.endsWith(".mp4")) {
+        setBackground(backgroundUrl);
       } else {
         setBackgroundImage(backgroundUrl);
       }
@@ -255,25 +252,29 @@ function startBackgroundUpdate(linkId, interval) {
   }
 
   updateBackground(); // Initial update
-  setInterval(updateBackground, interval * 1000); // Convert seconds to milliseconds
+  backgroundUpdateInterval = setInterval(updateBackground, interval * 1000); // Convert seconds to milliseconds
 }
 
 // Plugin initialization
 export default definePlugin({
-  name: "Ventaker",
+  name: "Re-Ventaker",
   description:
     "Plugin that changes your Discord background to one from Walltaker",
   authors: [{ name: "Lumi", id: 633026209479000065n }],
   settings,
   startAt: StartAt.DOMContentLoaded,
   async start() {
-    console.log("Ventaker plugin started.");
+    console.log("Re-Ventaker plugin started.");
     console.log("Plugin loaded with settings:", settings);
     const { link, hideByDefault } = settings.store;
     var { intervalRate } = settings.store;
     if (intervalRate < 30) {
       intervalRate = 30;
     }
+    document.documentElement.style.setProperty(
+      "--reventaker-opacity",
+      `${settings.store.opacity / 100}`,
+    );
     backgroundDisabled = hideByDefault; // Initialize backgroundDisabled based on hideByDefault setting
     startBackgroundUpdate(link, intervalRate);
     applyStyles();
@@ -281,13 +282,15 @@ export default definePlugin({
   },
 
   stop() {
-    console.log("Ventaker plugin stopped.");
+    console.log("Re-Ventaker plugin stopped.");
     document.removeEventListener("keydown", this.event);
+    if (backgroundUpdateInterval) clearInterval(backgroundUpdateInterval);
     const videoElement = document.getElementById("walltaker-video-background");
     if (videoElement) {
       videoElement.remove();
     }
     document.documentElement.style.removeProperty("--background-image");
+    document.documentElement.style.removeProperty("--reventaker-opacity");
     currentVideoUrl = null;
     backgroundDisabled = false; // Reset backgroundDisabled when plugin stops
   },
@@ -339,15 +342,14 @@ export default definePlugin({
       document.documentElement.style.removeProperty("--background-image");
     } else {
       // Re-enable background, re-fetch if necessary
-      if (
-        videoElement &&
+      const isVideo =
         currentVideoUrl &&
-        currentVideoUrl.endsWith(".webm")
-      ) {
+        (currentVideoUrl.endsWith(".webm") || currentVideoUrl.endsWith(".mp4"));
+      if (videoElement && isVideo) {
         videoElement.style.display = "block";
         videoElement.currentTime = 0; // Restart video from the beginning
         videoElement.play();
-      } else if (currentVideoUrl && !currentVideoUrl.endsWith(".webm")) {
+      } else if (currentVideoUrl && !isVideo) {
         // Re-apply image background
         document.documentElement.style.setProperty(
           "--background-image",
