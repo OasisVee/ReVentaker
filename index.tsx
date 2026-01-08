@@ -9,14 +9,21 @@ import definePlugin, { OptionType, StartAt } from "@utils/types";
 import cssContent from "./style.css";
 import { useState } from "@webpack/common";
 import { classNameFactory } from "@api/Styles";
+import {
+  CUSTOM_STYLES_ID,
+  HOTKEY_CLASS_PREFIX,
+  Modifiers,
+  VIDEO_BACKGROUND_ID,
+  WALLTAKER_BACKGROUND_ID,
+} from "./modules/constants";
+import { fetchBackgroundUrl } from "./modules/api";
 
-let currentVideoUrl = null;
+let currentVideoUrl: string | null = null;
 let isRecordingGlobalVentaker: boolean = false;
 let backgroundDisabled: boolean = false;
-let backgroundUpdateInterval: any = null;
-const cl = classNameFactory("ventaker-hotkey-");
+let backgroundUpdateInterval: NodeJS.Timeout | null = null;
+const cl = classNameFactory(HOTKEY_CLASS_PREFIX);
 
-// Define the settings for the plugin
 const settings = definePluginSettings({
   link: {
     type: OptionType.STRING,
@@ -126,23 +133,7 @@ const settings = definePluginSettings({
   },
 });
 
-// Function to fetch the background URL from Walltaker
-async function fetchBackgroundUrl(linkId) {
-  const url = `https://walltaker.joi.how/links/${linkId}.json`;
-  try {
-    console.log(`Fetching background URL from: ${url}`);
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Failed to fetch background");
-    const data = await response.json();
-    console.log("Fetched data:", data);
-    return data.post_url; // Assuming the JSON response has a 'post_url' property
-  } catch (error) {
-    console.error("Error fetching background:", error);
-    return null;
-  }
-}
-
-function setBackground(url) {
+function setBackground(url: string) {
   if (backgroundDisabled) {
     console.log("Background is disabled, not setting video background.");
     return;
@@ -154,7 +145,6 @@ function setBackground(url) {
     `${settings.store.opacity / 100}`,
   );
 
-  // Check if the URL is the same as the current video URL
   if (url === currentVideoUrl) {
     console.log("Same video URL, continuing playback.");
     return;
@@ -163,12 +153,12 @@ function setBackground(url) {
   currentVideoUrl = url;
 
   let videoElement = document.getElementById(
-    "walltaker-video-background",
+    VIDEO_BACKGROUND_ID,
   ) as HTMLVideoElement;
 
   if (!videoElement) {
     videoElement = document.createElement("video");
-    videoElement.id = "walltaker-video-background";
+    videoElement.id = VIDEO_BACKGROUND_ID;
     videoElement.autoplay = true;
     videoElement.loop = true;
     videoElement.muted = settings.store.muteVideos;
@@ -177,14 +167,14 @@ function setBackground(url) {
     videoElement.style.left = "0";
     videoElement.style.width = "100%";
     videoElement.style.height = "100%";
-    videoElement.style.objectFit = "cover";
+    videoElement.style.objectFit = "contain";
+
     videoElement.style.zIndex = "-1";
     videoElement.style.opacity = "1";
     document.body.appendChild(videoElement);
   }
 
   if (videoElement) {
-    // Also ensure to clear the CSS background property when a video is set
     document.documentElement.style.removeProperty("--background-image");
   }
 
@@ -192,8 +182,7 @@ function setBackground(url) {
   videoElement.style.display = "block";
 }
 
-// Function to set the background in the Discord client
-function setBackgroundImage(url) {
+function setBackgroundImage(url: string) {
   if (backgroundDisabled) {
     console.log("Background is disabled, not setting image background.");
     return;
@@ -205,39 +194,34 @@ function setBackgroundImage(url) {
     `${settings.store.opacity / 100}`,
   );
 
-  // Remove existing video element if any
-  const videoElement = document.getElementById("walltaker-video-background");
+  const videoElement = document.getElementById(VIDEO_BACKGROUND_ID);
   if (videoElement) {
     videoElement.remove();
-    currentVideoUrl = null; // Reset the current video URL
+    currentVideoUrl = null;
   }
   document.documentElement.style.setProperty(
     "--background-image",
     `url('${url}')`,
   );
 
-  // Remove old style element for cleanup
-  const styleElement = document.getElementById("walltaker-background");
+  const styleElement = document.getElementById(WALLTAKER_BACKGROUND_ID);
   if (styleElement) {
     styleElement.remove();
   }
 }
 
-// Function to apply additional CSS styles
 function applyStyles() {
-  let styleElement = document.getElementById("ventaker-custom-styles");
+  let styleElement = document.getElementById(CUSTOM_STYLES_ID);
   if (!styleElement) {
     styleElement = document.createElement("style");
-    styleElement.id = "ventaker-custom-styles";
+    styleElement.id = CUSTOM_STYLES_ID;
     document.head.appendChild(styleElement);
   }
 
-  // Pretty shit time :3
   styleElement.innerHTML = cssContent;
 }
 
-// Function to periodicall update the background
-function startBackgroundUpdate(linkId, interval) {
+function startBackgroundUpdate(linkId: string, interval: number) {
   if (backgroundUpdateInterval) clearInterval(backgroundUpdateInterval);
 
   async function updateBackground() {
@@ -251,16 +235,24 @@ function startBackgroundUpdate(linkId, interval) {
     }
   }
 
-  updateBackground(); // Initial update
-  backgroundUpdateInterval = setInterval(updateBackground, interval * 1000); // Convert seconds to milliseconds
+  updateBackground().catch((error) => {
+    console.error("Failed to perform initial background update:", error);
+  });
+  backgroundUpdateInterval = setInterval(() => {
+    updateBackground().catch((error) => {
+      console.error("Failed to perform periodic background update:", error);
+    });
+  }, interval * 1000); // Convert seconds to milliseconds
 }
 
-// Plugin initialization
 export default definePlugin({
   name: "Re-Ventaker",
   description:
     "Plugin that changes your Discord background to one from Walltaker",
-  authors: [{ name: "Lumi", id: 633026209479000065n }],
+  authors: [
+    { name: "Lumi", id: 633026209479000065n },
+    { name: "mimikurama", id: 967152107922792478n },
+  ],
   settings,
   startAt: StartAt.DOMContentLoaded,
   async start() {
@@ -275,7 +267,7 @@ export default definePlugin({
       "--reventaker-opacity",
       `${settings.store.opacity / 100}`,
     );
-    backgroundDisabled = hideByDefault; // Initialize backgroundDisabled based on hideByDefault setting
+    backgroundDisabled = hideByDefault;
     startBackgroundUpdate(link, intervalRate);
     applyStyles();
     document.addEventListener("keydown", this.event);
@@ -285,24 +277,18 @@ export default definePlugin({
     console.log("Re-Ventaker plugin stopped.");
     document.removeEventListener("keydown", this.event);
     if (backgroundUpdateInterval) clearInterval(backgroundUpdateInterval);
-    const videoElement = document.getElementById("walltaker-video-background");
+    const videoElement = document.getElementById(VIDEO_BACKGROUND_ID);
     if (videoElement) {
       videoElement.remove();
     }
     document.documentElement.style.removeProperty("--background-image");
     document.documentElement.style.removeProperty("--reventaker-opacity");
     currentVideoUrl = null;
-    backgroundDisabled = false; // Reset backgroundDisabled when plugin stops
+    backgroundDisabled = false;
   },
 
   event(e: KeyboardEvent) {
     console.log("Keydown event detected:", e);
-    enum Modifiers {
-      control = "ctrlKey",
-      shift = "shiftKey",
-      alt = "altKey",
-      meta = "metaKey",
-    }
 
     const { disableKeybind } = settings.store;
     const pressedKey = e.key.toLowerCase();
@@ -328,10 +314,9 @@ export default definePlugin({
     }
 
     console.log("Hotkey matched! Toggling background.");
-    // Hotkey pressed, toggle background visibility
     backgroundDisabled = !backgroundDisabled;
     const videoElement = document.getElementById(
-      "walltaker-video-background",
+      VIDEO_BACKGROUND_ID,
     ) as HTMLVideoElement;
 
     if (backgroundDisabled) {
@@ -341,22 +326,19 @@ export default definePlugin({
       }
       document.documentElement.style.removeProperty("--background-image");
     } else {
-      // Re-enable background, re-fetch if necessary
       const isVideo =
         currentVideoUrl &&
         (currentVideoUrl.endsWith(".webm") || currentVideoUrl.endsWith(".mp4"));
       if (videoElement && isVideo) {
         videoElement.style.display = "block";
-        videoElement.currentTime = 0; // Restart video from the beginning
+        videoElement.currentTime = 0;
         videoElement.play();
       } else if (currentVideoUrl && !isVideo) {
-        // Re-apply image background
         document.documentElement.style.setProperty(
           "--background-image",
           `url('${currentVideoUrl}')`,
         );
       }
-      // If no currentUrl, re-fetch. This scenario might happen if the keybind was pressed before first fetch.
       if (!currentVideoUrl) {
         const { link, intervalRate } = settings.store;
         startBackgroundUpdate(link, intervalRate < 30 ? 30 : intervalRate);

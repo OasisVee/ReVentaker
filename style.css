@@ -91,64 +91,238 @@
 
 /* ADD ADDITIONAL CSS BELOW HERE */
 
+/* --- Settings UX Improvements --- */
+
+/* Title for settings sections */
+.ventaker-settings-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--main-color);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin: 20px 0 10px;
+}
+
+/* Enhanced Hotkey Recorder Container */
 .ventaker-hotkey-key-recorder-container {
   display: flex;
   align-items: center;
-  padding: 8px;
-  border-radius: 5px;
-  background-color: var(--card-shading); /* Use theme's card shading */
-  margin-top: 10px;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 8px;
+  background-color: var(--card-shading);
   margin-bottom: 10px;
-  cursor: pointer;
-  box-shadow: 0 0 0 1px var(--main-color); /* Subtle border/shadow */
-  transition: all 0.15s ease-in-out;
+  border: 1px solid var(--input-shading);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s ease-in-out;
 }
 
 .ventaker-hotkey-key-recorder-container:hover {
-  background-color: var(--background-modifier-hover, rgba(0, 0, 0, 0.6));
-  box-shadow: 0 0 0 1px var(--hover-color);
+  border-color: var(--hover-color);
+  box-shadow: 0 0 5px -2px var(--hover-color);
 }
 
+/* Key display within the recorder */
 .ventaker-hotkey-key-recorder {
   flex-grow: 1;
-  font-size: 14px;
-  color: var(--normal-text);
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px;
-  border-radius: 3px;
-  background-color: var(--input-shading); /* Use theme's input shading */
+  gap: 6px;
+  padding: 8px;
+  border-radius: 5px;
+  background-color: var(--input-shading);
+  min-height: 40px;
+  font-size: 14px;
+  color: var(--normal-text);
 }
 
+/* Individual Key Style (assuming a .hotkey-key class on the key elements) */
+.ventaker-hotkey-key-recorder .hotkey-key {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background-color: var(--background-shading);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-bottom: 2px solid rgba(0, 0, 0, 0.4);
+  font-family: var(--code-font);
+  color: var(--main-color);
+  font-weight: 600;
+}
+
+/* Polished Button */
 .ventaker-hotkey-key-recorder-button {
-  background-color: var(--main-color); /* Use main accent color */
+  background-color: var(--main-color);
   color: #fff;
   border: none;
-  border-radius: 3px;
-  padding: 5px 10px;
+  border-radius: 5px;
+  padding: 8px 14px;
   cursor: pointer;
-  font-size: 12px;
-  transition: all 0.15s ease-in-out;
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  transition:
+    all 0.2s ease-in-out,
+    transform 0.1s ease;
 }
 
 .ventaker-hotkey-key-recorder-button:hover:not(:disabled) {
   background-color: var(--hover-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.ventaker-hotkey-key-recorder-button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .ventaker-hotkey-key-recorder-button:disabled {
-  background-color: rgba(100, 100, 100, 0.5); /* Greyed out when disabled */
+  background-color: var(--muted-text);
   cursor: not-allowed;
+  opacity: 0.6;
 }
 
+/* Recording Button Animation */
 .ventaker-hotkey-recording-button {
-  background-color: var(
-    --danger-color
-  ); /* Indicate recording state with danger color */
+  background-color: var(--danger-color);
+  animation: ventaker-pulse 1.5s infinite;
 }
 
 .ventaker-hotkey-recording-button:hover:not(:disabled) {
-  background-color: var(
-    --danger-color
-  ); /* Keep the danger color on hover while recording */
+  background-color: var(--danger-color); /* Keep color on hover */
+}
+
+@keyframes ventaker-pulse {
+  0% {
+    box-shadow: 0 0 0 0 var(--danger-color-alpha, rgba(255, 85, 85, 0.7));
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(255, 85, 85, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(255, 85, 85, 0);
+  }
+}
+
+/* --- Generic Settings Components (adapt class names if needed) --- */
+
+/* Switch/Toggle */
+.ventaker-switch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: var(--card-shading);
+  padding: 10px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.ventaker-switch .control {
+  position: relative;
+  display: inline-block;
+  width: 48px;
+  height: 26px;
+}
+
+.ventaker-switch .control input {
+  display: none;
+}
+
+.ventaker-switch .slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--input-shading);
+  transition: 0.3s;
+  border-radius: 26px;
+}
+
+.ventaker-switch .slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: #fff;
+  transition: 0.3s;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.ventaker-switch input:checked + .slider {
+  background-color: var(--success-color);
+}
+
+.ventaker-switch input:checked + .slider:before {
+  transform: translateX(22px);
+}
+
+/* Slider */
+.ventaker-slider {
+  background-color: var(--card-shading);
+  padding: 15px;
+  border-radius: 8px;
+  margin: 10px 0;
+}
+
+.ventaker-slider input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--input-shading);
+  border-radius: 5px;
+  outline: none;
+  transition: all 0.2s;
+}
+
+.ventaker-slider input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  background: var(--main-color);
+  cursor: pointer;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s ease-in-out;
+}
+
+.ventaker-slider input[type="range"]::-webkit-slider-thumb:hover {
+  background: var(--hover-color);
+  transform: scale(1.1);
+}
+
+.ventaker-slider input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: var(--main-color);
+  cursor: pointer;
+  border-radius: 50%;
+  border: 3px solid #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.ventaker-slider input[type="range"]::-moz-range-thumb:hover {
+  background: var(--hover-color);
+}
+
+:root {
+  --background-size: contain !important;
+  --background-position: center !important;
+  --background-repeat: no-repeat !important;
+}
+
+#walltaker-video-background {
+  background-color: black;
+}
+
+/* Apply black background to root, allowing it to show through transparent areas */
+:root {
+  background-color: black !important;
 }
